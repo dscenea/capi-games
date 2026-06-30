@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capi Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--yellow:#FFD93D;--orange:#FF6B35;--purple:#6C63FF;--green:#06D6A0;--pink:#FF6B9D;--blue:#4CC9F0;--dark:#1A1A2E;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--dark);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(circle at 10% 20%,rgba(108,99,255,.25) 0%,transparent 40%),
+             radial-gradient(circle at 90% 80%,rgba(255,107,53,.2) 0%,transparent 40%),
+             radial-gradient(circle at 50% 50%,rgba(6,214,160,.1) 0%,transparent 60%);
+  pointer-events:none;z-index:0;}
+
+header{position:relative;z-index:1;text-align:center;padding:36px 20px 20px;}
+.logo{font-family:'Fredoka One',cursive;font-size:clamp(2.8rem,9vw,5.5rem);
+  background:linear-gradient(135deg,var(--yellow) 0%,var(--orange) 40%,var(--pink) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:logoPulse 3s ease-in-out infinite;letter-spacing:2px;}
+@keyframes logoPulse{0%,100%{filter:drop-shadow(0 4px 12px rgba(255,107,53,.4))}50%{filter:drop-shadow(0 4px 24px rgba(255,107,53,.8))}}
+.tagline{color:rgba(255,255,255,.5);font-size:.9rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;margin-top:4px;}
+
+/* SCORE BAR */
+.score-bar{position:relative;z-index:1;display:flex;justify-content:center;gap:12px;padding:0 20px 14px;flex-wrap:wrap;}
+.score-pill{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:50px;
+  padding:7px 18px;color:white;font-weight:800;font-size:.9rem;display:flex;align-items:center;gap:8px;}
+.score-pill.active-player{border-color:var(--yellow);box-shadow:0 0 12px rgba(255,217,61,.4);}
+.dot{width:10px;height:10px;border-radius:50%;}
+
+/* ── NAV: 3 main modes ── */
+.main-nav{position:relative;z-index:1;display:flex;justify-content:center;gap:12px;padding:0 20px 8px;flex-wrap:wrap;}
+.nav-btn{font-family:'Fredoka One',cursive;font-size:1.05rem;padding:13px 28px;border-radius:50px;border:none;
+  cursor:pointer;color:rgba(255,255,255,.55);background:rgba(255,255,255,.07);
+  border:2px solid rgba(255,255,255,.15);transition:all .25s;letter-spacing:.3px;}
+.nav-btn:hover{color:white;border-color:rgba(255,255,255,.35);}
+.nav-btn.active{color:var(--dark);border-color:transparent;box-shadow:0 6px 22px rgba(0,0,0,.35);}
+.nav-adivina.active{background:linear-gradient(135deg,#06D6A0,#4CC9F0);}
+.nav-ruleta.active{background:linear-gradient(135deg,var(--orange),var(--yellow));}
+.nav-peli.active{background:linear-gradient(135deg,var(--purple),var(--pink));}
+
+/* ── SPORT DROPDOWN ── */
+.sport-bar{position:relative;z-index:1;display:flex;justify-content:center;gap:10px;padding:10px 20px 20px;flex-wrap:wrap;}
+.sport-btn{font-family:'Fredoka One',cursive;font-size:.97rem;padding:10px 24px;border-radius:50px;border:none;
+  cursor:pointer;color:rgba(255,255,255,.5);background:rgba(255,255,255,.07);
+  border:2px solid rgba(255,255,255,.15);transition:all .25s;}
+.sport-btn:hover{color:white;}
+.sport-btn.active{color:var(--dark);border-color:transparent;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.sport-futbol.active{background:linear-gradient(135deg,#06D6A0,#4CC9F0);}
+.sport-basket.active{background:linear-gradient(135deg,#FF6B35,#FFD93D);}
+
+/* ── GAME CARD ── */
+.game-area{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:0 20px 60px;}
+.game-card{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:28px;
+  padding:28px;backdrop-filter:blur(10px);animation:cardIn .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ── RULETA ── */
+.ruleta-wrap{text-align:center;}
+.ruleta-title{font-family:'Fredoka One',cursive;font-size:1.5rem;color:white;margin-bottom:6px;}
+.ruleta-sub{color:rgba(255,255,255,.45);font-size:.85rem;margin-bottom:22px;}
+.slot-machine{display:flex;justify-content:center;margin-bottom:24px;}
+.slot{width:200px;height:200px;border-radius:28px;overflow:hidden;position:relative;
+  border:3px solid rgba(255,255,255,.15);background:rgba(0,0,0,.3);transition:border-color .3s,box-shadow .3s;}
+.slot.stopped{border-color:var(--yellow);box-shadow:0 0 28px rgba(255,217,61,.6);}
+.slot-inner{position:absolute;top:0;left:0;width:100%;}
+.slot-item{width:200px;height:200px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:10px;padding:12px;}
+.slot-emoji{font-size:5rem;line-height:1;}
+.slot-label{font-family:'Fredoka One',cursive;font-size:1rem;color:white;text-align:center;
+  line-height:1.3;text-shadow:0 1px 4px rgba(0,0,0,.9);}
+.spin-btn{font-family:'Fredoka One',cursive;font-size:1.3rem;padding:16px 48px;border:none;
+  border-radius:18px;cursor:pointer;background:linear-gradient(135deg,var(--orange),var(--yellow));
+  color:var(--dark);box-shadow:0 8px 24px rgba(255,107,53,.4);transition:all .2s cubic-bezier(.34,1.56,.64,1);margin-bottom:18px;}
+.spin-btn:hover:not(:disabled){transform:scale(1.06);}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed;}
+.ruleta-result{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.15);
+  border-radius:18px;padding:18px 22px;margin-top:16px;display:none;}
+.ruleta-result.show{display:block;animation:cardIn .35s cubic-bezier(.34,1.56,.64,1);}
+.result-title{font-family:'Fredoka One',cursive;color:var(--yellow);font-size:1.1rem;margin-bottom:10px;}
+.result-chip{background:rgba(255,255,255,.1);border-radius:12px;padding:10px 20px;
+  color:white;font-weight:700;font-size:1rem;display:inline-flex;align-items:center;gap:10px;}
+.result-chip .re{font-size:1.8rem;}
+
+/* ── ADIVINA ── */
+.game-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+.game-title{font-family:'Fredoka One',cursive;font-size:1.5rem;color:white;}
+.hint-counter{font-weight:800;font-size:.82rem;padding:5px 12px;border-radius:50px;}
+.hints-container{display:flex;flex-direction:column;gap:9px;margin-bottom:24px;min-height:200px;}
+.hint-card{background:rgba(255,255,255,.08);border-radius:13px;padding:12px 16px;color:white;
+  font-weight:600;font-size:.92rem;display:flex;align-items:center;gap:11px;
+  animation:hintSlide .4s cubic-bezier(.34,1.56,.64,1);border-left:4px solid transparent;}
+@keyframes hintSlide{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+.hint-num{font-family:'Fredoka One',cursive;font-size:1.1rem;min-width:26px;text-align:center;}
+.hint-locked{opacity:.22;filter:blur(6px);user-select:none;}
+.answer-section{display:flex;gap:10px;}
+.answer-input{flex:1;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);
+  border-radius:13px;padding:13px 16px;color:white;font-family:'Nunito',sans-serif;
+  font-size:.97rem;font-weight:700;outline:none;transition:border-color .2s;}
+.answer-input::placeholder{color:rgba(255,255,255,.3);}
+.answer-input:focus{border-color:rgba(255,255,255,.5);}
+.btn{font-family:'Fredoka One',cursive;font-size:.97rem;padding:13px 20px;border:none;
+  border-radius:13px;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);}
+.btn:hover{transform:scale(1.05);}
+.btn:active{transform:scale(.97);}
+.btn-check{background:var(--green);color:var(--dark);}
+.btn-hint{background:var(--yellow);color:var(--dark);}
+.btn-pass{background:rgba(255,255,255,.12);color:white;border:2px solid rgba(255,255,255,.2);}
+.btn-row{display:flex;gap:10px;margin-top:10px;}
+.btn-next{background:linear-gradient(135deg,var(--purple),var(--pink));color:white;
+  width:100%;padding:15px;font-size:1.05rem;border-radius:15px;margin-top:14px;}
+.feedback{text-align:center;padding:14px;border-radius:15px;font-family:'Fredoka One',cursive;
+  font-size:1.3rem;margin-top:14px;animation:pop .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.feedback.correct{background:rgba(6,214,160,.2);border:2px solid var(--green);color:var(--green);}
+.feedback.wrong{background:rgba(255,107,53,.2);border:2px solid var(--orange);color:var(--orange);}
+
+.whose-turn{text-align:center;padding:9px 14px;background:rgba(255,255,255,.07);
+  border-radius:12px;margin-bottom:18px;color:white;font-weight:700;font-size:.9rem;}
+.whose-turn span{font-family:'Fredoka One',cursive;font-size:1rem;}
+
+/* ── SCOREBOARD ── */
+.scoreboard-section{margin-top:28px;padding-top:22px;border-top:1px solid rgba(255,255,255,.1);}
+.scoreboard-title{font-family:'Fredoka One',cursive;color:rgba(255,255,255,.4);font-size:.82rem;
+  letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:10px;}
+.scoreboard-rows{display:flex;flex-direction:column;gap:7px;}
+.sb-row{display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,.05);border-radius:11px;padding:9px 14px;}
+.sb-name{color:white;font-weight:800;}
+.sb-pts{font-family:'Fredoka One',cursive;font-size:1.05rem;}
+.add-player-row{display:flex;gap:10px;margin-top:10px;}
+.player-input{flex:1;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.14);
+  border-radius:11px;padding:9px 13px;color:white;font-family:'Nunito',sans-serif;font-weight:700;outline:none;}
+.player-input::placeholder{color:rgba(255,255,255,.3);}
+.btn-add{background:var(--blue);color:var(--dark);padding:9px 16px;font-size:.9rem;}
+
+.emoji-float{position:fixed;font-size:2rem;pointer-events:none;z-index:999;animation:floatUp 1.2s ease-out forwards;}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-120px) scale(1.5)}}
+
+@media(max-width:480px){
+  .game-card{padding:18px;}
+  .answer-section{flex-direction:column;}
+  .slot{width:160px;height:160px;}
+  .slot-item{width:160px;height:160px;}
+  .slot-emoji{font-size:3.8rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Capi Games 🎮</div>
+  <div class="tagline">Juega con tus amigos</div>
+</header>
+
+<div class="score-bar" id="scoreBar"></div>
+
+<!-- 3 main modes -->
+<div class="main-nav">
+  <button class="nav-btn nav-adivina active" onclick="setMode('adivina',this)">🧠 Adivina</button>
+  <button class="nav-btn nav-ruleta" onclick="setMode('ruleta',this)">🎰 Ruleta</button>
+  <button class="nav-btn nav-peli" onclick="setMode('peli',this)">🎬 Películas</button>
+</div>
+
+<!-- Sport sub-selector (hidden for peli) -->
+<div class="sport-bar" id="sportBar">
+  <button class="sport-btn sport-futbol active" onclick="setSport('futbol',this)">⚽ Fútbol</button>
+  <button class="sport-btn sport-basket" onclick="setSport('basket',this)">🏀 Baloncesto</button>
+</div>
+
+<div class="game-area"><div class="game-card" id="gameCard"></div></div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  RULETA DATA
+// ══════════════════════════════════════════════════
+const FUTBOL_ITEMS=[
+  {emoji:'🇪🇸',label:'España\nLa Liga',bg:''},
+  {emoji:'🇮🇹',label:'Italia\nSerie A',bg:''},
+  {emoji:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',label:'Inglaterra\nPremier League',bg:''},
+  {emoji:'🇩🇪',label:'Alemania\nBundesliga',bg:''},
+  {emoji:'🇫🇷',label:'Francia\nLigue 1',bg:''},
+  {emoji:'🇵🇹',label:'Portugal\nPrimeira Liga',bg:''},
+  {emoji:'🇧🇷',label:'Brasil\nSeleção',bg:''},
+  {emoji:'🇦🇷',label:'Argentina\nSelección',bg:''},
+  {emoji:'🇳🇱',label:'Países Bajos\nEredivisie',bg:''},
+  {emoji:'⚽',label:'Real Madrid',bg:'rgba(254,190,16,.2)'},
+  {emoji:'⚽',label:'FC Barcelona',bg:'rgba(165,0,68,.2)'},
+  {emoji:'⚽',label:'Atlético Madrid',bg:'rgba(203,53,36,.2)'},
+  {emoji:'⚽',label:'Valencia CF',bg:'rgba(255,127,0,.2)'},
+  {emoji:'⚽',label:'Sevilla FC',bg:'rgba(215,23,24,.2)'},
+  {emoji:'⚽',label:'Villarreal CF',bg:'rgba(200,200,0,.15)'},
+  {emoji:'⚽',label:'AC Milan',bg:'rgba(251,9,11,.2)'},
+  {emoji:'⚽',label:'Juventus',bg:'rgba(29,29,29,.4)'},
+  {emoji:'⚽',label:'Inter Milan',bg:'rgba(0,104,168,.2)'},
+  {emoji:'⚽',label:'AS Roma',bg:'rgba(142,22,20,.2)'},
+  {emoji:'⚽',label:'SSC Napoli',bg:'rgba(18,160,195,.2)'},
+  {emoji:'⚽',label:'Lazio',bg:'rgba(135,216,247,.2)'},
+  {emoji:'⚽',label:'Man. United',bg:'rgba(218,41,28,.2)'},
+  {emoji:'⚽',label:'Arsenal FC',bg:'rgba(239,1,7,.2)'},
+  {emoji:'⚽',label:'Chelsea FC',bg:'rgba(3,70,148,.2)'},
+  {emoji:'⚽',label:'Liverpool FC',bg:'rgba(200,16,46,.2)'},
+  {emoji:'⚽',label:'Man. City',bg:'rgba(108,171,221,.2)'},
+  {emoji:'⚽',label:'Tottenham',bg:'rgba(19,34,87,.2)'},
+  {emoji:'⚽',label:'Bayern München',bg:'rgba(220,5,45,.2)'},
+  {emoji:'⚽',label:'B. Dortmund',bg:'rgba(253,225,0,.2)'},
+  {emoji:'⚽',label:'Bayer Leverkusen',bg:'rgba(227,34,25,.2)'},
+  {emoji:'⚽',label:'PSG',bg:'rgba(0,62,114,.2)'},
+  {emoji:'⚽',label:'Porto',bg:'rgba(0,87,160,.2)'},
+  {emoji:'⚽',label:'Benfica',bg:'rgba(196,16,16,.2)'},
+  {emoji:'⚽',label:'Ajax',bg:'rgba(196,16,16,.15)'},
+];
+
+const BASKET_ITEMS=[
+  {emoji:'🇪🇸',label:'España',bg:''},
+  {emoji:'🇫🇷',label:'Francia',bg:''},
+  {emoji:'🇩🇪',label:'Alemania',bg:''},
+  {emoji:'🇷🇸',label:'Serbia',bg:''},
+  {emoji:'🇬🇷',label:'Grecia',bg:''},
+  {emoji:'🇸🇮',label:'Eslovenia',bg:''},
+  {emoji:'🇱🇹',label:'Lituania',bg:''},
+  {emoji:'🇹🇷',label:'Turquía',bg:''},
+  {emoji:'🇭🇷',label:'Croacia',bg:''},
+  {emoji:'🇺🇸',label:'USA',bg:''},
+  {emoji:'🇨🇦',label:'Canadá',bg:''},
+  {emoji:'🇦🇷',label:'Argentina',bg:''},
+  {emoji:'🏀',label:'LA Lakers',bg:'rgba(85,37,130,.2)'},
+  {emoji:'🏀',label:'Golden State Warriors',bg:'rgba(29,66,138,.2)'},
+  {emoji:'🏀',label:'Chicago Bulls',bg:'rgba(206,17,65,.2)'},
+  {emoji:'🏀',label:'Boston Celtics',bg:'rgba(0,122,51,.2)'},
+  {emoji:'🏀',label:'Miami Heat',bg:'rgba(152,0,46,.2)'},
+  {emoji:'🏀',label:'San Antonio Spurs',bg:'rgba(196,206,212,.2)'},
+  {emoji:'🏀',label:'Denver Nuggets',bg:'rgba(14,34,64,.2)'},
+  {emoji:'🏀',label:'Milwaukee Bucks',bg:'rgba(0,71,27,.2)'},
+  {emoji:'🏀',label:'Dallas Mavericks',bg:'rgba(0,83,188,.2)'},
+  {emoji:'🏀',label:'Real Madrid Basket',bg:'rgba(254,190,16,.2)'},
+  {emoji:'🏀',label:'Barça Basket',bg:'rgba(165,0,68,.2)'},
+  {emoji:'🏀',label:'CSKA Moscú',bg:'rgba(200,16,46,.2)'},
+  {emoji:'🏀',label:'Olympiacos',bg:'rgba(206,17,61,.2)'},
+  {emoji:'🏀',label:'Fenerbahçe',bg:'rgba(0,61,126,.2)'},
+  {emoji:'🏀',label:'Panathinaikos',bg:'rgba(0,100,0,.2)'},
+  {emoji:'🏀',label:'Maccabi Tel Aviv',bg:'rgba(255,215,0,.2)'},
+  {emoji:'🏀',label:'Virtus Bologna',bg:'rgba(0,0,0,.3)'},
+];
+
+// ══════════════════════════════════════════════════
+//  ADIVINA DATA  –  jugadores rebuscados por épocas
+// ══════════════════════════════════════════════════
+const DATA_ADIVINA={
+  futbol:[
+    // ── 90s ──
+    {answer:"Hristo Stoichkov",hints:["Nació en Plovdiv, Bulgaria, en 1966 y jugó de extremo izquierdo.","Fue uno de los pilares del Dream Team del FC Barcelona de Johan Cruyff.","Ganó el Balón de Oro en 1994, convirtiéndose en el primer búlgaro en lograrlo.","Llevó a Bulgaria a las semifinales del Mundial de 1994, donde quedaron cuartos.","Era conocido tanto por su genialidad como por su temperamento explosivo dentro del campo."]},
+    {answer:"Gabriel Batistuta",hints:["Nació en Avellaneda, Argentina, en 1969, y jugó de delantero centro.","Pasó la mayor parte de su carrera en la Fiorentina, donde es considerado un dios local.","Es el máximo goleador histórico de la selección argentina con 56 goles en su momento.","Era conocido por su potente disparo con ambas piernas y se le apodaba Batigol.","Fue fichado por la AS Roma en 2000 y ganó el Scudetto esa misma temporada."]},
+    {answer:"Predrag Mijatovic",hints:["Nació en Titograd, Montenegro, en 1969 y jugó de delantero.","Fue uno de los mejores jugadores del Valencia CF a mediados de los 90.","Marcó el gol que le dio al Real Madrid la Champions League de 1998 ante la Juventus.","Tuvo una carrera brillante entre el Valencia, el Real Madrid y la Fiorentina.","Tras retirarse, fue director deportivo del Real Madrid durante varios años."]},
+    {answer:"Davor Suker",hints:["Nació en Osijek, Croacia, en 1968 y jugó de delantero centro.","Fue el máximo goleador del Mundial de Francia 1998 con 6 goles y ganó la Bota de Oro.","Croacia quedó tercera en ese Mundial, su mejor resultado histórico hasta entonces.","Jugó en el Sevilla, el Real Madrid y el Arsenal, entre otros clubes europeos.","Es presidente de la Federación Croata de Fútbol desde 2012."]},
+    {answer:"Gianfranco Zola",hints:["Nació en Oliena, Cerdeña, Italia, en 1966, y jugó de mediapunta.","Fue descubierto y mentorizado por Diego Maradona en el Nápoles a principios de los 90.","Se convirtió en un ídolo absoluto en el Chelsea FC, donde jugó siete temporadas.","Era conocido por su técnica exquisita, su remate y sus habilidades en espacios reducidos.","Fue elegido el mejor jugador extranjero de la historia de la Premier League en una encuesta del año 2003."]},
+    {answer:"Emre Belözoğlu",hints:["Nació en Estambul, Turquía, en 1980 y jugó de centrocampista.","Fue uno de los grandes talentos del fútbol turco de su generación.","Llegó al Inter de Milán en 2001 y también jugó en el Newcastle y el Atlético de Madrid.","Fue pieza clave en la selección turca que quedó tercera en el Mundial de 2002.","Se retiró en el Fenerbahçe tras una carrera de más de 20 años."]},
+    // ── 2000s ──
+    {answer:"Simao Sabrosa",hints:["Nació en Chaves, Portugal, en 1979 y jugó de extremo derecho.","Era conocido por su velocidad, su regate y su disparo potente con la izquierda.","Jugó en el Barcelona, el Atlético de Madrid y el Besiktas, entre otros.","Fue uno de los mejores jugadores portugueses de su generación, en la sombra de Figo y Cristiano.","Disputó más de 50 partidos con la selección portuguesa."]},
+    {answer:"Juninho Pernambucano",hints:["Nació en Pernambuco, Brasil, en 1975, y jugó de centrocampista.","Es considerado el mejor lanzador de faltas de la historia del fútbol por muchos expertos.","Pasó la mayor parte de su carrera en el Olympique de Lyon, con el que ganó 7 Ligas francesas seguidas.","Sus faltas, con efecto de rosca y sin barrera que pudiera pararlas, eran casi imposibles de atajar.","Nunca fue convocado con regularidad por Brasil pese a su brillantez en el club."]},
+    {answer:"Ruud van Nistelrooy",hints:["Nació en Oss, Países Bajos, en 1976, y jugó de delantero centro.","Sufrió una grave lesión de rodilla antes de fichar por el Manchester United que retrasó un año su llegada.","Marcó en 10 partidos consecutivos de Champions League, un récord de la competición.","Fue el máximo goleador de la Premier League en la temporada 2002-03.","También jugó en el Real Madrid y el Hamburgo antes de retirarse."]},
+    {answer:"Marcos Senna",hints:["Nació en São Paulo, Brasil, en 1976, pero obtuvo la nacionalidad española y jugó para España.","Fue el centrocampista defensivo titular de España en la Eurocopa 2008 que ganaron.","Pasó prácticamente toda su carrera en el Villarreal CF, donde se convirtió en referente.","Era conocido por su capacidad de recuperar balones y su inteligencia posicional.","Pese a no tener la fama de otros, fue una pieza clave en la generación dorada española."]},
+    {answer:"Kevin-Prince Boateng",hints:["Nació en Berlín, Alemania, en 1987, de origen ghanés.","Optó por jugar con la selección de Ghana en lugar de Alemania.","Fue uno de los jugadores que interrumpió un partido de pretemporada del AC Milan por insultos racistas en 2013, en un gesto histórico.","Jugó en el AC Milan, el Schalke 04, el Sassuolo y el FC Barcelona, entre otros.","Es hermano del defensa alemán Jerome Boateng."]},
+    {answer:"Stelios Giannakopoulos",hints:["Nació en Atenas, Grecia, en 1974, y jugó de centrocampista o extremo.","Fue pieza fundamental en la selección griega que ganó la Eurocopa de Portugal 2004 como gran sorpresa.","Jugó ocho temporadas en el Bolton Wanderers de la Premier League.","Era conocido por su entrega, su disciplina táctica y su capacidad de jugar en varias posiciones.","Es uno de los héroes más recordados de ese histórico triunfo griego."]},
+    // ── 2010s ──
+    {answer:"Jakub Blaszczykowski",hints:["Nació en Truskolasy, Polonia, en 1985, y jugó de extremo derecho.","Fue uno de los mejores jugadores polacos de su generación junto a Lewandowski.","Pasó varios años en el Borussia Dortmund donde fue compañero de Lewandowski y Gotze.","También jugó en la Fiorentina y el Wolfsburgo durante su carrera.","Era conocido por su velocidad, su capacidad de desborde y su entrega al equipo."]},
+    {answer:"David Silva",hints:["Nació en Arguineguín, Gran Canaria, en 1986.","Jugó durante 10 temporadas en el Manchester City, donde ganó cuatro Premier Leagues.","Era conocido como El Mago o Merlin por sus compañeros y aficionados.","Fue pieza clave en la selección española que ganó dos Eurocopas y un Mundial.","Se retiró en la Real Sociedad, su club en España."]},
+    {answer:"Mario Götze",hints:["Nació en Memmingen, Alemania, en 1992.","Marcó el gol que le dio a Alemania el Mundial de Brasil 2014 en la final ante Argentina.","Fichó por el Bayern Munich desde el Borussia Dortmund en 2013 en un movimiento polémico.","Padeció una enfermedad metabólica que afectó gravemente su carrera.","Se retiró en el Eindhoven tras pasar por el PSV y el Eintracht Frankfurt."]},
+    {answer:"Isco",hints:["Nació en Benalmádena, Málaga, en 1992.","Llegó al Real Madrid en 2013 procedente del Málaga CF.","Era conocido por su regate en espacios reducidos y su visión de juego en mediapunta.","Ganó cuatro Champions League con el Real Madrid pero nunca fue titular indiscutible.","Su carrera se vio truncada por lesiones y falta de continuidad en sus últimos años."]},
+    // ── más 90s ──
+    {answer:"Christian Vieri",hints:["Nació en Bolonia, Italia, en 1973, y jugó de delantero centro.","Fue traspasado al Inter de Milán en 1999 por una cifra récord mundial en su momento.","Marcó 5 goles en el Mundial de Francia 1998 con Italia, terminando como subcampeón goleador.","Era conocido por su potencia física y su juego aéreo dominante.","Jugó también en el Atlético de Madrid, la Juventus y el Lazio durante su carrera."]},
+    {answer:"Edgar Davids",hints:["Nació en Paramaribo, Surinam, en 1973, y jugó de centrocampista.","Era conocido como El Pitbull por su agresividad e intensidad en el campo.","Llevaba siempre unas gafas protectoras especiales debido a una enfermedad ocular llamada glaucoma.","Fue pieza clave de la Juventus y del Ajax que ganó la Champions de 1995.","Jugó también en el FC Barcelona y el Inter de Milán."]},
+    {answer:"Fernando Hierro",hints:["Nació en Vélez-Málaga, España, en 1968, y jugó de defensa central.","Pasó 14 temporadas en el Real Madrid, donde fue capitán durante muchos años.","Ganó cinco Ligas y tres Champions League con el club blanco.","Pese a ser defensa, llegó a ser el máximo goleador histórico del Real Madrid en su época.","Acabó su carrera en el Al Rayyan de Catar antes de pasar a los banquillos."]},
+    // ── más 2000s ──
+    {answer:"Esteban Cambiasso",hints:["Nació en Buenos Aires, Argentina, en 1980, y jugó de centrocampista.","Ganó la Champions League con el Real Madrid en 2000, aunque apenas tuvo minutos.","Fue una pieza fundamental del Inter de Milán que ganó el triplete en 2010.","Era conocido por su inteligencia táctica y su capacidad de jugar en varias posiciones del medio.","Marcó un gol coral memorable contra Serbia y Montenegro en el Mundial de 2006."]},
+    {answer:"Michael Essien",hints:["Nació en Awutu-Breku, Ghana, en 1982, y jugó de centrocampista.","Fue fichado por el Chelsea FC en 2005 por una cifra récord para un jugador africano en su momento.","Era apodado El Bisonte por su fuerza física y su capacidad de recorrer el campo.","Ganó la Champions League de 2012 con el Chelsea pese a las lesiones que marcaron su carrera.","Jugó también en el Olympique de Lyon antes de fichar por el Chelsea."]},
+    {answer:"Park Ji-sung",hints:["Nació en Goyang, Corea del Sur, en 1981.","Fue el primer jugador surcoreano en ganar la Champions League, con el Manchester United en 2008.","Era conocido por su capacidad física y su entrega defensiva incansable.","Sir Alex Ferguson le elogió en numerosas ocasiones por su profesionalidad.","Lideró a Corea del Sur a las semifinales del Mundial de 2002 como anfitriones."]},
+    {answer:"Mark van Bommel",hints:["Nació en Eindhoven, Países Bajos, en 1977, y jugó de centrocampista defensivo.","Llegó a disputar dos finales de Champions League con dos clubes distintos: Bayern Munich y PSV.","Fue capitán de la selección holandesa que llegó a la final del Mundial de Sudáfrica 2010.","Es yerno del histórico jugador holandés Marco van Basten.","Era conocido por su dureza y su carácter combativo en el centro del campo."]},
+    {answer:"Diego Forlán",hints:["Nació en Montevideo, Uruguay, en 1979.","Fue elegido mejor jugador del Mundial de Sudáfrica 2010, el Balón de Oro del torneo.","Ganó dos Botas de Oro como máximo goleador de la Liga española, en distintos clubes.","Jugó en el Manchester United, el Villarreal y el Atlético de Madrid, entre otros.","Su padre y su abuelo también fueron futbolistas internacionales con Uruguay."]},
+    // ── más 2010s ──
+    {answer:"Toni Kroos",hints:["Nació en Greifswald, Alemania, en 1990.","Ganó el Mundial de Brasil 2014 con Alemania, siendo protagonista del histórico 7-1 ante el anfitrión.","Fichó por el Real Madrid en 2014 procedente del Bayern Munich.","Es conocido por su precisión de pase, considerada de las mejores de la historia.","Ganó seis Champions League con el Real Madrid antes de retirarse en 2024."]},
+    {answer:"Granit Xhaka",hints:["Nació en Basilea, Suiza, en 1992, de origen kosovar-albanés.","Jugó siete temporadas en el Arsenal FC antes de fichar por el Bayer Leverkusen.","Fue capitán del Arsenal durante varias temporadas pese a la controversia inicial con la afición.","Su hermano mayor, Taulant, también es futbolista profesional y jugó contra él en un Mundial.","Fue pieza clave del Bayer Leverkusen en su temporada invicta de la Bundesliga 2023-24."]},
+    {answer:"Marco Verratti",hints:["Nació en Pescara, Italia, en 1992, y jugó de centrocampista.","Fichó por el PSG en 2012 con apenas 19 años y se convirtió rápidamente en titular.","Es conocido por su capacidad de control de balón y su visión de juego en espacios reducidos.","Pese a su calidad, nunca disputó un Mundial debido a las eliminaciones de Italia.","Ganó múltiples Ligues 1 con el PSG a lo largo de una década."]},
+    {answer:"Filipe Luís",hints:["Nació en Río de Janeiro, Brasil, en 1985, y jugó de lateral izquierdo.","Pasó varias temporadas en el Atlético de Madrid, donde ganó una Liga española en 2014.","También jugó en el Deportivo de la Coruña y el Chelsea FC durante su carrera europea.","Era conocido por su solidez defensiva y su buen pie zurdo en la salida de balón.","Se retiró en el Flamengo, club al que después entrenó."]},
+    {answer:"Edinson Cavani",hints:["Nació en Salto, Uruguay, en 1987, y jugó de delantero centro.","Es el máximo goleador histórico del PSG, récord que mantuvo durante años.","Jugó también en el Palermo, el Nápoles y el Manchester United durante su carrera.","Es conocido como El Matador por su instinto goleador.","Formó parte de la selección uruguaya que llegó a semifinales del Mundial de 2010."]}
+  ],
+  basket:[
+    // ── 90s ──
+    {answer:"Detlef Schrempf",hints:["Nació en Bremerhaven, Alemania Occidental, en 1963.","Fue uno de los primeros europeos en tener un impacto real en la NBA.","Jugó en equipos como Indiana Pacers, Seattle SuperSonics y Portland Trail Blazers.","Ganó el premio al Mejor Sexto Hombre de la NBA en dos ocasiones consecutivas.","Fue tres veces All-Star y abrió el camino a los jugadores europeos en la liga."]},
+    {answer:"Toni Kukoc",hints:["Nació en Split, Yugoslavia, en 1968, y jugó de ala o alero.","Fue considerado el mejor jugador europeo del mundo antes de llegar a la NBA.","Phil Jackson le fichó para los Chicago Bulls y ganó tres anillos de la NBA.","Tuvo una relación tensa al principio con Pippen y Jordan, que se opusieron a su fichaje.","Era conocido por su habilidad para anotar, pasar y jugar en varias posiciones."]},
+    {answer:"Arvydas Sabonis",hints:["Nació en Kaunas, Lituania, en 1964, y medía 2,21 metros.","Es considerado por muchos el mejor pivot europeo de la historia.","Sufrió graves lesiones de tendón de Aquiles que le impidieron llegar a la NBA en su mejor momento.","Cuando por fin llegó a los Portland Trail Blazers tenía ya 31 años y no estaba en su mejor forma.","Con la URSS ganó el oro olímpico en 1988 y con Lituania el bronce en 1992 y 1996."]},
+    {answer:"Dan Majerle",hints:["Nació en Traverse City, Michigan, en 1965, y jugó de escolta o alero.","Era conocido como Thunder Dan por sus mates espectaculares y sus triples en momentos clave.","Fue una de las piezas clave de los Phoenix Suns de Charles Barkley que llegaron a las Finales en 1993.","Disputó tres All-Star Games durante su carrera en la NBA.","Entrenó a los Phoenix Suns y al Miami de la G-League tras retirarse."]},
+    // ── 2000s ──
+    {answer:"Manu Ginobili",hints:["Nació en Bahía Blanca, Argentina, en 1977.","Es el único jugador de la historia en ganar un anillo de la NBA, el oro olímpico y el título de la Euroliga.","Ganó cuatro anillos de la NBA con los San Antonio Spurs jugando principalmente como sexto hombre.","Desarrolló y popularizó el paso euroestep en la NBA.","Lideró a Argentina al oro olímpico en Atenas 2004, considerada la mayor hazaña del baloncesto sudamericano."]},
+    {answer:"Peja Stojakovic",hints:["Nació en Požega, Serbia, en 1977, y jugó de alero.","Fue tres veces campeón del concurso de triples del All-Star Weekend.","Jugó en el CSKA de Moscú antes de dar el salto a la NBA con los Sacramento Kings.","Formó uno de los mejores tríos de la NBA junto a Chris Webber y Mike Bibby en Sacramento.","Ganó su único anillo de la NBA con los Dallas Mavericks en 2011."]},
+    {answer:"Andrei Kirilenko",hints:["Nació en Izhevsk, Rusia, en 1981, y jugó de ala-pivot.","Era conocido por sus dotes defensivas únicas: podía robar, taponar y defender en varias posiciones.","Fue uno de los mejores defensores de la NBA en la primera década de los 2000.","Pasó la mayor parte de su carrera en los Utah Jazz y llevaba el dorsal 47.","Representó a Rusia en varios Juegos Olímpicos y Mundiales."]},
+    {answer:"Rajon Rondo",hints:["Nació en Louisville, Kentucky, en 1986, y jugó de base.","Era conocido por su capacidad de repartir asistencias y su inteligencia de juego más que por su anotación.","Fue pieza clave en el anillo de los Boston Celtics de 2008 junto a Garnett, Pierce y Allen.","Fue cuatro veces líder en asistencias de la NBA durante su carrera.","Era famoso por elevar su nivel en los playoffs, jugando mejor que en temporada regular."]},
+    {answer:"Boris Diaw",hints:["Nació en Cormeilles-en-Parisis, Francia, en 1982.","Era considerado un pívot con habilidades de base: pasaba, driblaba y leía el juego como un jugador pequeño.","Tuvo una de las mejores etapas de su carrera en los San Antonio Spurs, donde ganó un anillo en 2014.","Fue elegido el MVP del Eurobasket con Francia en 2011.","Su físico y estilo de juego único hacían que fuera muy difícil de encasillar en una posición."]},
+    // ── 2010s ──
+    {answer:"Marc Gasol",hints:["Nació en Barcelona, España, en 1985, y es el hermano pequeño de Pau Gasol.","Ganó el MVP defensivo de la NBA en 2013 jugando para los Memphis Grizzlies.","Fue pieza clave en el sistema de los Grizzlies conocido como Grit and Grind.","Ganó un anillo de la NBA con los Toronto Raptors en 2019.","También ganó el Eurobasket y el Mundial con España."]},
+    {answer:"Tony Parker",hints:["Nació en Bruges, Bélgica, en 1982, de padre americano y madre holandesa.","Fue el primer europeo en ganar el MVP de las Finales de la NBA, en 2007.","Ganó cuatro anillos de la NBA con los San Antonio Spurs.","Era conocido por su floater o tiro en suspensión en carrera, casi imposible de bloquear.","Fue también un jugador clave de la selección francesa durante más de una década."]},
+    {answer:"Rudy Gobert",hints:["Nació en Saint-Quentin, Francia, en 1992, y mide 2,16 metros.","Fue tres veces ganador del premio al Mejor Defensor de la NBA.","Es conocido por su dominio de la zona pintada tanto en ataque como en defensa.","Fue noticia en marzo de 2020 cuando dio positivo en COVID-19 y provocó la suspensión de la temporada NBA.","Juega actualmente en los Minnesota Timberwolves."]},
+    {answer:"Nikola Mirotic",hints:["Nació en Podgorica, Montenegro, en 1991, pero adoptó la nacionalidad española.","Fue elegido para jugar con España antes de que Montenegro le reclamara.","Formó parte del Real Madrid antes de dar el salto a la NBA con los Chicago Bulls.","Fue uno de los mejores tiradores de su generación en la Euroliga.","Ganó varios títulos de Euroliga con el Real Madrid y el Barça Basket."]},
+    // ── más 90s ──
+    {answer:"Vlade Divac",hints:["Nació en Prijepolje, Yugoslavia, en 1968, y jugó de pívot.","Fue uno de los primeros jugadores europeos en triunfar en la NBA, llegando en 1989.","Jugó para Los Angeles Lakers, Charlotte Hornets y Sacramento Kings durante su larga carrera.","Era conocido por su capacidad de pase para un jugador de su altura, poco común en pívots.","Tras retirarse fue presidente de los Sacramento Kings y de la federación serbia de baloncesto."]},
+    {answer:"Sam Cassell",hints:["Nació en Baltimore, Maryland, en 1969, y jugó de base.","Ganó dos anillos de la NBA como rookie con los Houston Rockets en 1994 y 1995.","Era conocido por su confianza extrema y su capacidad de anotar en momentos decisivos.","Jugó también para Milwaukee Bucks, Minnesota Timberwolves y Boston Celtics.","Su característico baile de cadera tras encestar triples se hizo viral en su época."]},
+    {answer:"Mookie Blaylock",hints:["Nació en Garland, Texas, en 1967, y jugó de base.","Era considerado uno de los mejores defensores de su posición en los años 90.","Lideró la NBA en robos de balón en dos temporadas distintas.","Jugó la mayor parte de su carrera con los Atlanta Hawks.","Su nombre fue usado por la banda Pearl Jam antes de que se rebautizaran con ese nombre."]},
+    // ── más 2000s ──
+    {answer:"Baron Davis",hints:["Nació en Los Ángeles, California, en 1979, y jugó de base.","Fue el tercer pick del draft de 1999 por los Charlotte Hornets.","Protagonizó uno de los mates más recordados de la historia de los playoffs ante Andrei Kirilenko en 2007.","Lideró a los Golden State Warriors, equipo octavo sembrado, a eliminar al primer sembrado Dallas Mavericks en 2007.","Era conocido por su explosividad física y su capacidad de anotación desde el perímetro."]},
+    {answer:"Shawn Marion",hints:["Nació en Waukegan, Illinois, en 1978, y jugó de ala-pivot o alero.","Era conocido como The Matrix por su estilo de juego atlético y poco ortodoxo.","Fue pieza clave de los Seven Seconds or Less Phoenix Suns junto a Steve Nash.","Ganó su único anillo de la NBA con los Dallas Mavericks en 2011.","Su lanzamiento, con una mecánica poco convencional, era efectivo a pesar de su rareza."]},
+    {answer:"Mehmet Okur",hints:["Nació en Bursa, Turquía, en 1979, y jugó de pívot.","Fue el primer jugador turco en ganar un anillo de la NBA, con los Detroit Pistons en 2004.","Se convirtió en un anotador de triples poco habitual para su posición en los Utah Jazz.","Fue All-Star en 2007 representando a los Utah Jazz.","Es uno de los jugadores europeos más exitosos de su generación en la NBA."]},
+    {answer:"Carlos Arroyo",hints:["Nació en Fajardo, Puerto Rico, en 1979, y jugó de base.","Lideró a Puerto Rico a vencer a Estados Unidos en los Juegos Olímpicos de Atenas 2004, un resultado histórico.","Llegó a ser titular ocasional de los Los Angeles Lakers de Kobe Bryant en 2010.","Jugó en numerosos equipos de la NBA a lo largo de su carrera itinerante.","Fue una de las grandes estrellas del baloncesto puertorriqueño de su generación."]},
+    // ── más 2010s ──
+    {answer:"Goran Dragic",hints:["Nació en Liubliana, Eslovenia, en 1986, y jugó de base.","Ganó el premio al Jugador Más Mejorado de la NBA en 2014 con los Phoenix Suns.","Fue una pieza fundamental en la sorprendente carrera de los Miami Heat hasta las Finales de 2020.","Lideró a Eslovenia a ganar el Eurobasket de 2017, su primer gran título.","Su hermano Zoran también fue jugador profesional de baloncesto."]},
+    {answer:"Nemanja Bjelica",hints:["Nació en Belgrado, Serbia, en 1988, y jugó de ala-pivot.","Antes de llegar a la NBA fue una superestrella de la Euroliga con el Fenerbahçe.","Era conocido por su capacidad de tirar triples para un jugador de su altura.","Jugó para Minnesota Timberwolves, Sacramento Kings, Miami Heat y Golden State Warriors en la NBA.","Ganó un anillo de la NBA como suplente con los Denver Nuggets en 2023."]},
+    {answer:"Bogdan Bogdanovic",hints:["Nació en Belgrado, Serbia, en 1992, y jugó de escolta.","Fue una estrella del Fenerbahçe y del Partizan antes de dar el salto a la NBA en 2017.","Ganó la medalla de plata olímpica con Serbia en los Juegos de Río 2016.","Es conocido por su capacidad anotadora y su tiro exterior de calidad.","Juega actualmente en los Los Angeles Clippers tras pasar por varios equipos de la NBA."]},
+    {answer:"Ricky Rubio",hints:["Nació en El Masnou, Barcelona, en 1990, y debutó profesionalmente con solo 14 años.","Ganó la medalla de plata olímpica con España en Pekín 2008 siendo todavía adolescente.","Fue el cuarto pick del draft de 2009 por los Minnesota Timberwolves, aunque tardó dos años en llegar.","Era conocido por su capacidad de asistir y su visión de juego excepcional, más que por su anotación.","Habló abiertamente sobre sus problemas de salud mental tras retirarse de la competición."]},
+    {answer:"Furkan Korkmaz",hints:["Nació en Kütahya, Turquía, en 1997, y jugó de escolta.","Fue el primer jugador turco draftado directamente desde Europa por debajo de los 20 años en años recientes.","Jugó varias temporadas en los Philadelphia 76ers, ganándose un rol como especialista en triples.","Antes de la NBA destacó en el Anadolu Efes de la Euroliga turca.","Forma parte habitual de la selección turca en competiciones internacionales."]}
+  ],
+  peli:[
+    {answer:"El Rey León",hints:["Es una película animada de Disney estrenada en 1994.","Su banda sonora incluye canciones de Elton John.","Está inspirada en la obra Hamlet de William Shakespeare.","El protagonista es un cachorro de león llamado Simba.","El villano es el tío del protagonista, llamado Scar."]},
+    {answer:"Titanic",hints:["Fue dirigida por James Cameron y estrenada en 1997.","Ganó 11 premios Oscar, incluyendo Mejor Película.","Está ambientada en el hundimiento del famoso barco en 1912.","Los protagonistas son interpretados por Leonardo DiCaprio y Kate Winslet.","La canción My Heart Will Go On de Céline Dion es su tema principal."]},
+    {answer:"Avengers Endgame",hints:["Es una película del Universo Cinematográfico de Marvel.","Se estrenó en 2019 y es la secuela directa de Infinity War.","En su estreno se convirtió en la película más taquillera de la historia.","Los héroes viajan en el tiempo para recuperar las Gemas del Infinito.","Incluye la icónica frase I am Iron Man antes del momento cumbre."]},
+    {answer:"Coco",hints:["Es una película animada de Pixar estrenada en 2017.","Está ambientada en México durante el Día de los Muertos.","El protagonista sueña con ser músico a pesar de la prohibición familiar.","Ganó el Oscar a Mejor Película de Animación.","La canción Remember Me es central en la trama."]},
+    {answer:"El Señor de los Anillos",hints:["Es una trilogía dirigida por Peter Jackson.","Está basada en la novela de J.R.R. Tolkien.","La tercera parte ganó los 11 premios Oscar a los que fue nominada.","Los protagonistas buscan destruir un anillo mágico.","La batalla del Pelennor Fields es una de sus escenas más épicas."]},
+    {answer:"Interestelar",hints:["Fue dirigida por Christopher Nolan y estrenada en 2014.","Aborda temas como la relatividad del tiempo y los agujeros negros.","El protagonista lidera una misión para salvar a la humanidad.","La banda sonora es del compositor Hans Zimmer.","Matthew McConaughey y Anne Hathaway son los protagonistas."]},
+    {answer:"La La Land",hints:["Fue dirigida por Damien Chazelle y estrenada en 2016.","Ganó 6 premios Oscar, incluyendo Mejor Director.","Es un musical moderno ambientado en Los Ángeles.","Los protagonistas son un pianista de jazz y una actriz aspirante.","Protagonizada por Ryan Gosling y Emma Stone."]},
+    {answer:"Parásitos",hints:["Es una película surcoreana dirigida por Bong Joon-ho.","Se estrenó en 2019 y ganó la Palma de Oro en Cannes.","Fue la primera película no anglófona en ganar el Oscar a Mejor Película.","Narra la relación entre una familia rica y una familia pobre en Seúl.","Combina elementos de thriller, drama y comedia negra."]},
+    {answer:"Inception",hints:["Fue dirigida por Christopher Nolan y estrenada en 2010.","El protagonista entra en los sueños de otras personas para robar o implantar ideas.","Ganó cuatro premios Oscar, incluyendo Mejor Fotografía y Mejor Efectos Visuales.","Protagonizada por Leonardo DiCaprio, Joseph Gordon-Levitt y Marion Cotillard.","Su final, con la peonza girando, sigue siendo uno de los más debatidos de la historia del cine."]},
+    {answer:"Whiplash",hints:["Fue dirigida por Damien Chazelle y estrenada en 2014.","Ganó tres premios Oscar, incluyendo Mejor Montaje y Mejor Actor de Reparto.","Cuenta la historia de un joven batería que estudia en un conservatorio de élite.","El antagonista es un director de orquesta obsesivo e implacable.","Protagonizada por Miles Teller y J.K. Simmons."]}
+  ]
+};
+
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+const S={
+  mode:'adivina', sport:'futbol',
+  players:[], currentPlayer:0,
+  questionIndex:0, hintsRevealed:0, answered:false, feedback:null,
+  usedIndices:{futbol:[],basket:[],peli:[]},
+  spinning:false, finalItem:null
+};
+const PC=['#FFD93D','#06D6A0','#FF6B9D','#4CC9F0','#FF6B35','#6C63FF'];
+const GC={futbol:'#06D6A0',basket:'#FF6B35',peli:'#6C63FF'};
+
+function pickQ(){
+  const key=S.mode==='peli'?'peli':S.sport;
+  const pool=DATA_ADIVINA[key], used=S.usedIndices[key];
+  let av=pool.map((_,i)=>i).filter(i=>!used.includes(i));
+  if(!av.length){S.usedIndices[key]=[];av=pool.map((_,i)=>i);}
+  const p=av[Math.floor(Math.random()*av.length)];
+  S.usedIndices[key].push(p); S.questionIndex=p;
+}
+function rItems(){return S.sport==='futbol'?FUTBOL_ITEMS:BASKET_ITEMS;}
+function pickRandom(arr){const a=[...arr];return a[Math.floor(Math.random()*a.length)];}
+function curColor(){return S.mode==='peli'?GC.peli:GC[S.sport];}
+
+// ── RENDER ────────────────────────────────────────
+function renderScoreBar(){
+  const b=document.getElementById('scoreBar');
+  if(!S.players.length){b.innerHTML='';return;}
+  b.innerHTML=S.players.map((p,i)=>`
+    <div class="score-pill ${S.currentPlayer===i?'active-player':''}">
+      <span class="dot" style="background:${PC[i%PC.length]}"></span>
+      ${p.name}: <strong>${p.score} pts</strong>
+    </div>`).join('');
+}
+
+function render(){
+  document.getElementById('sportBar').style.display=S.mode==='peli'?'none':'flex';
+  if(S.mode==='ruleta')renderRuleta();
+  else renderAdivina();
+  renderScoreBar();
+}
+
+function sbHTML(){
+  const rows=S.players.length
+    ?`<div class="scoreboard-rows">${[...S.players].sort((a,b)=>b.score-a.score).map((p,i)=>{
+        const oi=S.players.findIndex(x=>x.name===p.name);
+        return`<div class="sb-row"><span class="sb-name">${i===0?'🏆':i===1?'🥈':i===2?'🥉':'  '} ${p.name}</span>
+          <span class="sb-pts" style="color:${PC[oi%PC.length]}">${p.score} pts</span></div>`;
+      }).join('')}</div>`
+    :`<p style="color:rgba(255,255,255,.35);text-align:center;font-size:.87rem">Añade jugadores para llevar la puntuación</p>`;
+  return`<div class="scoreboard-section">
+    <div class="scoreboard-title">Marcador</div>${rows}
+    <div class="add-player-row">
+      <input class="player-input" id="playerNameInput" placeholder="Nombre del jugador..." onkeydown="if(event.key==='Enter')addPlayer()">
+      <button class="btn btn-add" onclick="addPlayer()">+ Añadir</button>
+    </div></div>`;
+}
+
+function turnHTML(){
+  if(!S.players.length)return'';
+  const c=curColor();
+  return`<div class="whose-turn">Turno de: <span style="color:${c}">${S.players[S.currentPlayer]?.name}</span></div>`;
+}
+
+// RULETA
+function renderRuleta(){
+  const sport=S.sport;
+  const desc=sport==='futbol'
+    ?'Gira el carrete y piensa un jugador de ese equipo o país.'
+    :'Gira el carrete y piensa un jugador de ese equipo o país.';
+  const it=S.finalItem;
+  const slotHTML=`<div class="slot ${S.finalItem&&!S.spinning?'stopped':''}" id="slot0">
+    <div class="slot-inner" id="inner0">
+      <div class="slot-item" style="${it&&it.bg?`background:${it.bg}`:''}">
+        <span class="slot-emoji">${it?it.emoji:'❓'}</span>
+        <span class="slot-label">${it?it.label:'–'}</span>
+      </div>
+    </div>
+  </div>`;
+  const resultShown=S.finalItem&&!S.spinning;
+  const resultHTML=resultShown?`
+    <div class="ruleta-result show">
+      <div class="result-title">🎯 Piensa un jugador de…</div>
+      <div class="result-chip"><span class="re">${S.finalItem.emoji}</span>${S.finalItem.label.replace('\n',' – ')}</div>
+    </div>`:'';
+  const nextBtn=resultShown?`<button class="btn btn-next" style="margin-top:14px" onclick="nextTurnRuleta()">Siguiente turno →</button>`:'';
+  const emoji=sport==='futbol'?'⚽':'🏀';
+  const name=sport==='futbol'?'Fútbol':'Baloncesto';
+  document.getElementById('gameCard').innerHTML=`
+    <div class="ruleta-wrap">
+      <div class="ruleta-title">${emoji} Ruleta de ${name}</div>
+      <p class="ruleta-sub">${desc}</p>
+      ${turnHTML()}
+      <div class="slot-machine">${slotHTML}</div>
+      <button class="spin-btn" id="spinBtn" onclick="spinRuleta()" ${S.spinning?'disabled':''}>
+        ${S.spinning?'⏳ Girando…':'🎰 ¡Girar!'}
+      </button>
+      ${resultHTML}${nextBtn}
+    </div>${sbHTML()}`;
+}
+
+function spinRuleta(){
+  if(S.spinning)return;
+  S.spinning=true;
+  S.finalItem=pickRandom(rItems());
+  render();
+  const dur=2400;
+  const pool=rItems();
+  let last=0,elapsed=0;
+  function frame(ts){
+    if(!last)last=ts;
+    elapsed+=ts-last;last=ts;
+    const inner=document.getElementById('inner0');
+    if(!inner)return;
+    if(elapsed>=dur){
+      const fin=S.finalItem;
+      inner.innerHTML=`<div class="slot-item" style="${fin.bg?`background:${fin.bg}`:''}">
+        <span class="slot-emoji">${fin.emoji}</span>
+        <span class="slot-label">${fin.label}</span>
+      </div>`;
+      const slot=document.getElementById('slot0');
+      if(slot)slot.classList.add('stopped');
+      S.spinning=false;render();return;
+    }
+    const r=pool[Math.floor(Math.random()*pool.length)];
+    inner.innerHTML=`<div class="slot-item" style="${r.bg?`background:${r.bg}`:''}">
+      <span class="slot-emoji">${r.emoji}</span>
+      <span class="slot-label">${r.label}</span>
+    </div>`;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+function nextTurnRuleta(){
+  if(S.players.length)S.currentPlayer=(S.currentPlayer+1)%S.players.length;
+  S.finalItem=null;renderScoreBar();render();
+}
+
+// ADIVINA
+function renderAdivina(){
+  const key=S.mode==='peli'?'peli':S.sport;
+  const q=DATA_ADIVINA[key][S.questionIndex];
+  const c=curColor();const maxH=q.hints.length;
+  const emoji=S.mode==='peli'?'🎬':S.sport==='futbol'?'⚽':'🏀';
+  const hintsHTML=q.hints.map((h,i)=>{
+    const rev=i<S.hintsRevealed;
+    return`<div class="hint-card" style="${rev?`border-left-color:${c}`:''}">
+      <span class="hint-num" style="color:${c}">${i+1}</span>
+      <span${rev?'':' class="hint-locked"'}>${rev?h:'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'}</span>
+    </div>`;
+  }).join('');
+  const feedbackHTML=S.feedback?`<div class="feedback ${S.feedback.type}">${S.feedback.msg}</div>`:'';
+  const nextBtn=S.answered?`<button class="btn btn-next" onclick="nextTurnAdivina()">Siguiente pregunta →</button>`:'';
+  const curPts=Math.max(5-S.hintsRevealed+1,1)*10;
+  const inputSection=!S.answered?`
+    <div class="answer-section">
+      <input class="answer-input" id="answerInput" placeholder="Tu respuesta..." onkeydown="if(event.key==='Enter')checkAnswer()">
+      <button class="btn btn-check" onclick="checkAnswer()">✓</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-hint" onclick="revealHint()" ${S.hintsRevealed>=maxH?'disabled style="opacity:.4"':''}>
+        💡 Pista (${S.hintsRevealed}/${maxH})
+      </button>
+      <button class="btn btn-pass" onclick="passTurn()">⏭️ Paso</button>
+    </div>
+    <p style="text-align:center;color:rgba(255,255,255,.4);font-size:.8rem;margin-top:10px;">
+      En juego: <strong style="color:${c}">${curPts} pts</strong> · Fallo: <strong style="color:var(--orange)">-10 pts</strong>
+    </p>`:'';
+  document.getElementById('gameCard').innerHTML=`
+    <div class="game-header">
+      <div class="game-title">${emoji} Adivina</div>
+      <div class="hint-counter" style="background:${c}22;color:${c};border:2px solid ${c}44">Pista ${Math.min(S.hintsRevealed,maxH)}/${maxH}</div>
+    </div>
+    ${turnHTML()}
+    <div class="hints-container">${hintsHTML}</div>
+    ${inputSection}${feedbackHTML}${nextBtn}
+    ${sbHTML()}`;
+  if(!S.answered){const inp=document.getElementById('answerInput');if(inp)inp.focus();}
+}
+
+// ── ACTIONS ───────────────────────────────────────
+function setMode(m,btn){
+  S.mode=m;S.answered=false;S.feedback=null;S.hintsRevealed=0;S.finalItem=null;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(m!=='ruleta')pickQ();
+  render();
+}
+
+function setSport(sp,btn){
+  S.sport=sp;S.answered=false;S.feedback=null;S.hintsRevealed=0;S.finalItem=null;
+  document.querySelectorAll('.sport-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(S.mode!=='ruleta')pickQ();
+  render();
+}
+
+function revealHint(){
+  const key=S.mode==='peli'?'peli':S.sport;
+  if(S.hintsRevealed<DATA_ADIVINA[key][S.questionIndex].hints.length){S.hintsRevealed++;renderAdivina();}
+}
+
+function advancePlayer(){
+  if(S.players.length)S.currentPlayer=(S.currentPlayer+1)%S.players.length;
+}
+
+function passTurn(){
+  if(S.answered)return;
+  if(!S.players.length){ floatEmoji('⏭️'); return; }
+  advancePlayer();
+  renderAdivina();renderScoreBar();
+}
+
+function checkAnswer(){
+  if(S.answered)return;
+  const inp=document.getElementById('answerInput');if(!inp)return;
+  const ua=inp.value.trim().toLowerCase();if(!ua)return;
+  const key=S.mode==='peli'?'peli':S.sport;
+  const q=DATA_ADIVINA[key][S.questionIndex];
+  const correct=q.answer.toLowerCase();
+  const words=correct.split(' ').filter(w=>w.length>2);
+  const ok=words.every(w=>ua.includes(w))||ua.includes(correct);
+  const maxH=q.hints.length;
+
+  if(ok){
+    const pts=Math.max(5-S.hintsRevealed+1,1)*10;
+    S.answered=true;
+    S.feedback={type:'correct',msg:`✅ ${S.players.length?S.players[S.currentPlayer].name+' acierta! ':'Correcto! '}+${pts} puntos 🎉`};
+    if(S.players.length)S.players[S.currentPlayer].score+=pts;
+    floatEmoji('🎉');
+    renderAdivina();renderScoreBar();
+    return;
+  }
+
+  // Wrong answer: -10 points (floor 0), pass to next player, same hint level
+  if(S.players.length){
+    const p=S.players[S.currentPlayer];
+    p.score=Math.max(0,p.score-10);
+  }
+  inp.value='';
+
+  if(S.hintsRevealed>=maxH && S.players.length<=1){
+    // No more hints and effectively no rotation possible — reveal answer
+    S.answered=true;
+    S.feedback={type:'wrong',msg:`❌ Incorrecto, -10 pts. Era: ${q.answer}`};
+    floatEmoji('😬');
+    renderAdivina();renderScoreBar();
+    return;
+  }
+
+  S.feedback={type:'wrong',msg:`❌ Incorrecto, -10 pts. ${S.players.length?'Turno de '+S.players[(S.currentPlayer+1)%S.players.length]?.name:''}`};
+  floatEmoji('😬');
+  advancePlayer();
+  renderAdivina();renderScoreBar();
+  // clear feedback after a moment so next player sees clean state, but keep hints
+  setTimeout(()=>{ S.feedback=null; if(!S.answered) renderAdivina(); }, 1600);
+}
+
+function nextTurnAdivina(){
+  if(S.players.length)S.currentPlayer=(S.currentPlayer+1)%S.players.length;
+  S.answered=false;S.feedback=null;S.hintsRevealed=0;
+  pickQ();renderAdivina();renderScoreBar();
+}
+
+function addPlayer(){
+  const inp=document.getElementById('playerNameInput');if(!inp)return;
+  const name=inp.value.trim();
+  if(!name||S.players.find(p=>p.name.toLowerCase()===name.toLowerCase()))return;
+  S.players.push({name,score:0});inp.value='';renderScoreBar();render();
+}
+
+function floatEmoji(e){
+  const el=document.createElement('div');el.className='emoji-float';el.textContent=e;
+  el.style.left=(Math.random()*80+10)+'vw';el.style.top='60vh';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1300);
+}
+
+pickQ();render();
+</script>
+</body>
+</html>
